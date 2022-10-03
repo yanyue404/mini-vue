@@ -1,6 +1,6 @@
 // 保存 data 中的数值和页面中的挂钩关系
 import Dep from "./dep";
-export default class Watcher {
+export default class Watcher { 
   constructor(vm, key, cb) {
     // 创建实例时立刻将该实例指向 Dep.target 便于依赖收集
     this.vm = vm;

@@ -1,11 +1,10 @@
 import Watcher from "./watcher";
 // 遍历 dom 结构，解析表达式和插值表达式
 export class Compile {
-  // el - 待编译模板，vm - KVue 实例
+  // el - 待编译模板，vm - Vue 实例
   constructor(el, vm) {
     this.$vm = vm;
-    this.$el = document.querySelector(el);
-
+    this.$el = el;
     // 把模板中的内容移动到片段中操作
     this.$fragment = this.node2Fragment(this.$el);
     // 执行编译
