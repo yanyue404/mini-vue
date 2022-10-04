@@ -39,6 +39,12 @@
         },
         html: '<button style="margin: 15px 0;">这是一个按钮</button>',
       },
+      watch: {
+        name(newVal, oldVal) {
+          console.log("watch name oldVal:", oldVal);
+          console.log("watch name newVal:", newVal);
+        },
+      },
       created() {
         console.log("开始啦");
         setTimeout(() => {

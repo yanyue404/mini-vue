@@ -1,5 +1,6 @@
 import { Observe } from "./observe";
 import { Compile } from "./complie";
+import Watcher from "./watcher.js";
 
 export default function MiniVue(options) {
   this.$options = options;
@@ -19,6 +20,8 @@ MiniVue.prototype = {
     if (this.$options.created) {
       this.$options.created.call(this);
     }
+    // 处理 watch
+    this.initWatch();
   },
   initData() {
     const vm = this;
@@ -40,6 +43,15 @@ MiniVue.prototype = {
       vm[e] = methods[e];
     });
   },
+  initWatch() {
+    if (this.$options.watch) {
+      const watch = this.$options.watch;
+      const keys = Object.keys(watch);
+      keys.forEach((key) => {
+        this.$watch(key, watch[key]);
+      });
+    }
+  },
   proxy(target, sourceKey, key) {
     const sharedPropertyDefinition = {
       enumerable: true,
@@ -54,6 +66,9 @@ MiniVue.prototype = {
       this[sourceKey][key] = val;
     };
     Object.defineProperty(target, key, sharedPropertyDefinition);
+  },
+  $watch(variable, callback) {
+    new Watcher(this, variable, callback);
   },
 };
 

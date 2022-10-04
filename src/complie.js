@@ -27,9 +27,8 @@ export class Compile {
     Array.from(childNodes).forEach((node) => {
       // * 元素类型
       if (node.nodeType === 1) {
-        // console.log('编译元素' + node.nodeName);
         this.compileElement(node);
-        // * 插值表达式
+        // * 文本类型的 —— 插值表达式
       } else if (this.isInterpolation(node)) {
         this.compileText(node);
       }
@@ -49,7 +48,6 @@ export class Compile {
       // * 指令
       if (this.isDirective(attrName)) {
         const dir = attrName.substring(2);
-        console.log(dir);
         this[dir] && this[dir](node, this.$vm, exp);
       }
       // * 事件
@@ -71,15 +69,14 @@ export class Compile {
   }
   // 文本替换
   compileText(node) {
-    console.log("编译插值⽂文本: " + RegExp.$1 + " 是 " + this.$vm[RegExp.$1]);
-
+    console.log("编译插值⽂文本: " + RegExp.$1);
     const exp = RegExp.$1;
     this.update(node, exp, "text"); // v-text
   }
   update(node, exp, dir) {
     let updatrFn = this[dir + "Updater"];
     updatrFn && updatrFn(node, this.$vm[exp]); // 首次初始化
-    // ! 创建 Watcher，初始化编译后完成依赖收集
+    // ! 创建 Watcher，初始化编译后完成 exp 属性的依赖收集
     new Watcher(this.$vm, exp, function (value) {
       updatrFn && updatrFn(node, value);
     });
@@ -96,7 +93,7 @@ export class Compile {
   }
   // 事件处理
   eventHandler(node, vm, exp, dir) {
-    let fn = vm.$options.methods && vm.$options.methods[exp];
+    let fn = vm[exp];
     if (dir && fn) {
       node.addEventListener(dir, fn.bind(vm));
     }

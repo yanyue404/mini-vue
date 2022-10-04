@@ -32,6 +32,6 @@ export function defineReactive(obj, key, val) {
       dep.notify();
     },
   });
-  // 递归
-  // Observe(val);
+  // ! 递归子属性
+  Observe(val);
 }
