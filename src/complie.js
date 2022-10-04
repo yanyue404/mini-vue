@@ -41,7 +41,7 @@ export class Compile {
     });
   }
   compileElement(node) {
-    // <div k-model="foo" k-text="test" @click="onClick">
+    // <div v-model="foo" v-text="test" @click="onClick">
     let nodeAttrs = node.attributes;
     Array.from(nodeAttrs).forEach((attr) => {
       const attrName = attr.name;
@@ -64,7 +64,7 @@ export class Compile {
     return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);
   }
   isDirective(attr) {
-    return attr.indexOf("k-") === 0;
+    return attr.indexOf("v-") === 0;
   }
   isEvent(attr) {
     return attr.indexOf("@") === 0;
@@ -79,7 +79,7 @@ export class Compile {
   update(node, exp, dir) {
     let updatrFn = this[dir + "Updater"];
     updatrFn && updatrFn(node, this.$vm[exp]); // 首次初始化
-    // 创建 Watcher，初始化编译后完成依赖收集
+    // ! 创建 Watcher，初始化编译后完成依赖收集
     new Watcher(this.$vm, exp, function (value) {
       updatrFn && updatrFn(node, value);
     });

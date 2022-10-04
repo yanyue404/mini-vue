@@ -18,16 +18,20 @@ export function defineReactive(obj, key, val) {
       return val;
     },
     set(newVal) {
-      if (newVal !== val) {
-        val = newVal;
-        // newVal 是对象 继续劫持
-        new Observe(newVal);
-
-        console.log(`当前管理依赖项 ${key} 的:`, dep);
-        dep.notify();
+      if (newVal === val) {
+        return;
       }
+      val = newVal;
+      // newVal 是对象 继续劫持
+      new Observe(newVal);
+      // 如果新值是对象 递归监听
+      if (typeof newVal === "object") {
+        new Observer(newVal);
+      }
+      // 触发更新
+      dep.notify();
     },
   });
   // 递归
-  Observe(val);
+  // Observe(val);
 }

@@ -21,14 +21,12 @@
   <body>
     <div id="app">
       <p>{{name}}</p>
-      <p k-text="name"></p>
+      <p v-text="name"></p>
       <p>{{age}}</p>
-      <input type="text" k-model="name" />
+      <input type="text" v-model="name" />
       <button @click="changeName">更新 name</button>
-      <div k-html="html"></div>
+      <div v-html="html"></div>
     </div>
-
-  
   </body>
   <script>
     const app = new MiniVue({
@@ -36,6 +34,9 @@
       data: {
         name: "I am test.",
         age: 26,
+        obj: {
+          id: "1",
+        },
         html: '<button style="margin: 15px 0;">这是一个按钮</button>',
       },
       created() {
@@ -51,7 +52,7 @@
         },
       },
     });
-    /*       var vm = new KVue({
+    /*       var vm = new MiniVue({
             el: '.root',
             data: {
               tabIndex: 0,
