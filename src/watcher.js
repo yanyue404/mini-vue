@@ -7,6 +7,11 @@ export default class Watcher {
     this.vm = vm;
     this.key = expOrFn;
     this.cb = cb;
+    // 存放dep实例
+    this.deps = [];
+    // 存放dep的ID
+    this.depIds = new Set();
+    // 更新触发回调函数
     this.getter = () => vm[expOrFn];
     // 在创建watcher实例时先取一次值
     this.value = this.get();
@@ -17,6 +22,17 @@ export default class Watcher {
     const value = this.getter(); // ! 触发依赖收集 (到这一步 get 调用 target 才有值了 )
     Dep.target = null; // ! 收集完清空（等待其他 Watcher 实例化，每一个 watcher 只与自己的 dep 发生关系）
     return value;
+  }
+  addDep(dep) {
+    // 触发依赖 dep添加观察者对象 同时观察者对象也会将dep实例添加到自己的deps里
+    // 如果dep已经存在deps里 则不添加
+    // dep中存放着对应的watcher watcher中也会存放着对应的dep
+    // 一个dep可能有多个watcher 一个watcher也可能对应着多个dep
+    if (!this.depIds.has(dep.id)) {
+      this.deps.push(dep);
+      this.depIds.add(dep.id);
+      dep.addSub(this);
+    }
   }
   update() {
     // 触发更新后执行回调函数

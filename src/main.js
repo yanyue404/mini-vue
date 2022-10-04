@@ -1,6 +1,6 @@
-import { Observe } from "./observe";
-import { Compile } from "./complie";
-import Watcher from "./watcher.js";
+import { observe } from "./observe";
+import { compile } from "./complie";
+import Watcher from "./watcher";
 
 export default function MiniVue(options) {
   this.$options = options;
@@ -10,13 +10,15 @@ export default function MiniVue(options) {
 
 MiniVue.prototype = {
   init() {
+    // MiniVue实例
+    this._isMiniVue = true;
     // 初始化数据和方法
     this.initData();
     this.initMethods();
     // 响应化数据
-    new Observe(this._data, this);
+    new observe(this._data, this);
     // 首次解析指令（建立绑定关系）
-    new Compile(this.$el, this);
+    new compile(this.$el, this);
     if (this.$options.created) {
       this.$options.created.call(this);
     }

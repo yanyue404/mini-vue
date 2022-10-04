@@ -1,12 +1,35 @@
 // 依赖收集：管理所有的 watcher
-export default class Dep {
-  constructor() {
-    this.deps = [];
-  }
-  addDep(dep) {
-    this.deps.push(dep);
-  }
-  notify() {
-    this.deps.forEach((dep) => dep.update());
-  }
+// dep实例的ID
+let uid = 0;
+// Dep.target为watcher实例
+Dep.target = null;
+
+export default function Dep() {
+  this.id = uid++;
+  this.subs = [];
 }
+
+Dep.prototype = {
+  depend() {
+    if (Dep.target) {
+      Dep.target.addDep(this);
+    }
+  },
+
+  addSub(sub) {
+    this.subs.push(sub);
+  },
+
+  removeSub(sub) {
+    const index = this.subs.indexOf(sub);
+    if (index > -1) {
+      this.subs.splice(index, 1);
+    }
+  },
+
+  notify() {
+    this.subs.forEach((watcher) => {
+      watcher.update();
+    });
+  },
+};

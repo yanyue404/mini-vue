@@ -1,6 +1,6 @@
 import Watcher from "./watcher";
 // 遍历 dom 结构，解析表达式和插值表达式
-export class Compile {
+export class compile {
   // el - 待编译模板，vm - Vue 实例
   constructor(el, vm) {
     this.$vm = vm;
