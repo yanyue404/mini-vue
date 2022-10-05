@@ -42,13 +42,18 @@
       },
       watch: {
         name(newVal, oldVal) {
-          console.log("watch name oldVal:", oldVal);
-          console.log("watch name newVal:", newVal);
+          console.log("watch [name] oldVal:", oldVal);
+          console.log("watch [name] newVal:", newVal);
+        },
+        arr(newVal, oldVal) {
+          console.log("watch [arr] oldVal:", oldVal);
+          console.log("watch [arr] newVal:", newVal);
         },
       },
       created() {
         console.log("开始啦");
         console.log(this.arr.push(4));
+        console.log(this.arr.push(5));
 
         setTimeout(() => {
           this.name = "我是测试";

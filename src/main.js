@@ -19,16 +19,19 @@ MiniVue.prototype = {
     new observe(this._data, this);
     // 首次解析指令（建立绑定关系）
     new compile(this.$el, this);
+    // 处理 watch
+    this.initWatch();
+    // 执行 created
     if (this.$options.created) {
       this.$options.created.call(this);
     }
-    // 处理 watch
-    this.initWatch();
   },
   initData() {
     const vm = this;
     let data = vm.$options.data;
+
     data = vm._data = typeof data === "function" ? data() : data || {};
+    this.$data = data;
     const keys = Object.keys(data);
 
     // 对每一个key实现代理 即可通过vm.msg来访问vm._data.msg

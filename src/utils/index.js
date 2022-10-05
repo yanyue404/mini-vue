@@ -20,3 +20,7 @@ export function def(obj, key, val, enumerable) {
     configurable: true,
   });
 }
+
+export function makeGetterFn(body) {
+  return new Function("vm", "return vm." + body);
+}

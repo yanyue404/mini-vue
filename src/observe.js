@@ -24,6 +24,7 @@ methodsToPatch.forEach(function (method) {
         inserted = args.slice(2);
         break;
     }
+    // 侦测新增元素的变化
     if (inserted) {
       ob.observeArray(inserted);
     }
