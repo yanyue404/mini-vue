@@ -1,4 +1,6 @@
-> https://github.dev/yanyue404/vue
+> vue 源码 https://github.dev/yanyue404/vue
+> 
+> 思维导图： https://www.processon.com/view/link/5d1eb5a0e4b0fdb331d3798c
 
 ## 调试 Vue 项目的方式
 
@@ -48,7 +50,7 @@ new Vue({
   - `mounted`: 组件已挂载
 - `_update`
   - 执行 diff 算法，对比改变是否需要触发 UI 更新
-  - flushSchedulerQueue 异步刷新队列计划
+  - flushSchedulerQueue 清空异步队列计划
     - watcher.before(): 触发 beforeUpdate 钩子， watcher.run(); 通知所有依赖项更新 UI
     - 触发 updated 钩子，组件已更新
 - `$destroy`
@@ -392,6 +394,11 @@ watcher 更新逻辑：通常情况下会执⾏ queueWatcher，执⾏异步更�
 src\core\observer\scheduler.js queueWatcher
 
 ```js
+/**
+ * Push a watcher into the watcher queue.
+ * Jobs with duplicate IDs will be skipped unless it's
+ * pushed when the queue is being flushed.
+ */
 function queueWatcher(watcher: Watcher) {
   const id = watcher.id;
   if (has[id] == null) {
@@ -412,18 +419,14 @@ function queueWatcher(watcher: Watcher) {
     if (!waiting) {
       waiting = true;
 
-      if (process.env.NODE_ENV !== "production" && !config.async) {
-        flushSchedulerQueue();
-        return;
-      }
-      // 下个刷新周期执⾏批量任务，这是vue异步更新实现的关键
+      // 下个事件循环执⾏批量任务，这是vue异步更新实现的关键
       nextTick(flushSchedulerQueue);
     }
   }
 }
 
 /**
- * 刷新队列计划
+ * 清空队列计划
  * Flush both queues and run the watchers.
  */
 function flushSchedulerQueue() {
@@ -510,6 +513,119 @@ export function nextTick(cb?: Function, ctx?: Object) {
     return new Promise((resolve) => {
       _resolve = resolve;
     });
+  }
+}
+```
+
+**总结**
+
+数据响应的实现由两部分构成: 观察者( watcher ) 和 依赖收集器( Dep )，其核心是 defineProperty 这个方法，它可以 重写属性的 get 与 set 方法，从而完成监听数据的改变。
+
+- Observe (观察者)观察 props 与 state
+  - 遍历 props 与 state，对每个属性创建独立的监听器( watcher )
+- 使用 defineProperty 重写每个属性的 get/set(defineReactive）
+  - get: 收集依赖
+    - Dep.depend()
+      - watcher.addDep()
+  - set: 派发更新
+    - Dep.notify() 通知 watcher 更新
+    - watcher.update() watcher 更新
+    - queenWatcher() 加入 watcher 队列，异步等待更新
+    - nextTick 事件循环控制更新时机
+    - flushSchedulerQueue 清空队列计划
+    - watcher.run() 正式触发新旧值的 callback
+    - updateComponent() 组件更新
+
+核心数据响应的伪代码实现：
+
+```js
+let data = { a: 1 };
+// 数据响应性
+observe(data);
+
+// 初始化观察者
+new Watcher(data, "name", updateComponent);
+data.a = 2;
+
+// 简单表示用于数据更新后的操作
+function updateComponent() {
+  vm._update(); // patchs
+}
+
+// 监视对象
+function observe(obj) {
+  // 遍历对象，使用 get/set 重新定义对象的每个属性值
+  Object.keys(obj).map((key) => {
+    defineReactive(obj, key, obj[key]);
+  });
+}
+
+function defineReactive(obj, k, v) {
+  // 递归子属性
+  if (type(v) == "object") observe(v);
+
+  // 新建依赖收集器
+  let dep = new Dep();
+  // 定义get/set
+  Object.defineProperty(obj, k, {
+    enumerable: true,
+    configurable: true,
+    get: function reactiveGetter() {
+      // 当有获取该属性时，证明依赖于该对象，因此被添加进收集器中
+      if (Dep.target) {
+        dep.addSub(Dep.target);
+      }
+      return v;
+    },
+    // 重新设置值时，触发收集器的通知机制
+    set: function reactiveSetter(nV) {
+      v = nV;
+      dep.nofify();
+    },
+  });
+}
+
+// 依赖收集器
+class Dep {
+  constructor() {
+    this.subs = [];
+  }
+  addSub(sub) {
+    this.subs.push(sub);
+  }
+  notify() {
+    this.subs.map((sub) => {
+      sub.update();
+    });
+  }
+}
+
+Dep.target = null;
+
+// 观察者
+class Watcher {
+  constructor(obj, key, cb) {
+    Dep.target = this;
+    this.cb = cb;
+    this.obj = obj;
+    this.key = key;
+    this.value = obj[key];
+    Dep.target = null;
+  }
+  addDep(Dep) {
+    Dep.addSub(this);
+  }
+  update() {
+    // queueWatcher 方法见上文
+    queueWatcher(this);
+  }
+  run() {
+    const oldValue = this.value;
+    this.value = value;
+    this.cb.call(this.vm, value, oldValue);
+  }
+  before() {
+    callHook("beforeUpdate");
   }
 }
 ```
