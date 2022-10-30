@@ -1,6 +1,6 @@
 import { observe } from "./observe";
 import { compile } from "./complie";
-import Watcher from "./watcher";
+import { Watcher, nextTick } from "./watcher";
 
 export default function MiniVue(options) {
   this.$options = options;
@@ -10,6 +10,8 @@ export default function MiniVue(options) {
 
 MiniVue.prototype = {
   init() {
+    // 存放事件
+    this._events = {};
     // MiniVue实例
     this._isMiniVue = true;
     // 初始化数据和方法
@@ -74,6 +76,68 @@ MiniVue.prototype = {
   },
   $watch(variable, callback) {
     new Watcher(this, variable, callback);
+  },
+  // 当为对象添加属性或修改数组的值时可用这个方法 能实时更新
+  $set(obj, key, val) {
+    this[obj][key] = val;
+    this[obj].__ob__.dep.notify();
+  },
+  // 当为对象删除属性或删除数组的值时可用这个方法 能实时更新
+  $delete(obj, key) {
+    if (isArray(this[obj])) {
+      this[obj].splice(key, 1);
+    } else {
+      delete this[obj][key];
+      this[obj].__ob__.dep.notify();
+    }
+  },
+
+  $nextTick: nextTick,
+
+  $on(event, fn) {
+    (this._events[event] || (this._events[event] = [])).push(fn);
+  },
+
+  $off(event, fn) {
+    const cbs = this._events[event];
+    if (!fn) {
+      cbs.length = 0;
+      return;
+    }
+    let l = cbs.length;
+    while (l--) {
+      let cb = cbs[l];
+      if (cb === fn) {
+        cbs.splice(l, 1);
+      }
+    }
+  },
+
+  $emit(event) {
+    const cbs = this._events[event];
+    const args = toArray(arguments, 1);
+    if (!cbs) {
+      this._events[event] = [];
+      return;
+    }
+    if (args.length > 1) {
+      cbs.forEach((cb) => {
+        cb.apply(this, args);
+      });
+    } else {
+      cbs.forEach((cb) => {
+        cb.call(this, args[0]);
+      });
+    }
+  },
+
+  $once(event, fn) {
+    const vm = this;
+    function on() {
+      vm.$off(event, on);
+      fn.apply(this, arguments);
+    }
+    this.$on(event, on);
   },
 };
 

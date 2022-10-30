@@ -1,4 +1,4 @@
-import Watcher from "./watcher";
+import { Watcher } from "./watcher";
 // 遍历 dom 结构，解析表达式和插值表达式
 export class compile {
   // el - 待编译模板，vm - Vue 实例
@@ -48,7 +48,8 @@ export class compile {
       // * 指令
       if (this.isDirective(attrName)) {
         const dir = attrName.substring(2);
-        this[dir] && this[dir](node, this.$vm, exp);
+        console.log(dir);
+        this[dir] && this[dir](node, this.$vm, exp, dir);
       }
       // * 事件
       if (this.isEvent(attrName)) {
@@ -97,6 +98,11 @@ export class compile {
     if (dir && fn) {
       node.addEventListener(dir, fn.bind(vm));
     }
+  }
+  on(node, vm, exp, dir) {
+    console.log("on ---");
+    console.log(arguments);
+    // this.eventHandler();
   }
   text(node, vm, exp) {
     this.update(node, exp, "text");

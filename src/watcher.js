@@ -4,7 +4,7 @@ import Dep from "./dep";
 // watcher实例的ID 每个watcher实现的ID都是唯一的
 let uid = 0;
 
-export default class Watcher {
+export class Watcher {
   // expOrFn为表达式或一个变量名
   constructor(vm, expOrFn, cb) {
     this.id = uid++;
@@ -45,11 +45,13 @@ export default class Watcher {
     }
   }
   update() {
+    pushWatcher(this);
+  }
+  run() {
     // 触发更新后执行回调函数
     const value = this.get();
     const oldValue = this.value;
     // FIXME: 旧值总是更新成新的
-    console.log("this.oldValue", this.oldValue);
     if (value !== oldValue) {
       this.cb.call(this.vm, value, oldValue);
     } else {
@@ -57,4 +59,41 @@ export default class Watcher {
     }
     this.value = value;
   }
+}
+
+const queue = [];
+let has = {};
+let waiting = false;
+
+function pushWatcher(watcher) {
+  const id = watcher.id;
+  // 如果已经有相同的watcher则不添加 防止重复更新
+  if (has[id] == null) {
+    has[id] = queue.length;
+    queue.push(watcher);
+  }
+
+  if (!waiting) {
+    waiting = true;
+    // 下次事件循环执行，任务队列 queue 已经缓存了这一轮 filter 后要执行的 n 多个事件
+    nextTick(flushQueue);
+  }
+}
+
+function flushQueue() {
+  queue.forEach((q) => {
+    q.run();
+  });
+
+  // 执行完，重置
+  waiting = false;
+  has = {};
+  queue.length = 0;
+}
+
+export function nextTick(cb, ctx) {
+  const p = Promise.resolve();
+  p.then(() => {
+    ctx ? cb.call(ctx) : cb();
+  });
 }
