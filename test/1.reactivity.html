@@ -8,12 +8,10 @@
   </head>
   <body>
     <div id="app">
-      <p>不带空格：{{name}}</p>
-      <p>带空格：{{ name }}</p>
+      <p>{{name}}</p>
       <p v-text="name"></p>
       <p>{{age}}</p>
       <input type="text" v-model="name" />
-      <button v-on:click="changeAge">更新 age</button>
       <button @click="changeName">更新 name</button>
       <div v-html="html"></div>
     </div>
@@ -44,6 +42,16 @@
           console.log("watch [arr] newVal:", newVal);
         },
       },
+      created() {
+        console.log("开始啦");
+        console.log(this.arr.push(4));
+        console.log(this.arr.push(5));
+
+        setTimeout(() => {
+          this.name = "我是测试";
+          console.log(this.arr);
+        }, 1500);
+      },
       methods: {
         changeName() {
           console.log(this);
@@ -53,14 +61,6 @@
           setTimeout(() => {
             console.log(this.obj);
           }, 0);
-        },
-        changeAge() {
-          for (let i = 0; i < 100; i++) {
-            this.age++;
-          }
-          this.$nextTick(() => {
-            console.log("$nextTick:", this.age);
-          });
         },
       },
     });

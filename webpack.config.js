@@ -30,7 +30,10 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       filename: "index.html",
+      // 默认根目录
       template: "app.html",
+      // 自定义目录
+      // template: "test/2.nextTick.html",
       inject: true,
     }),
     new webpack.NamedModulesPlugin(),

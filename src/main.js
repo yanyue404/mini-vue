@@ -3,29 +3,45 @@ import { compile } from "./complie";
 import { Watcher, nextTick } from "./watcher";
 
 export default function MiniVue(options) {
-  this.$options = options;
-  this.$el = document.querySelector(options.el);
-  this.init();
+  this._init(options);
 }
 
 MiniVue.prototype = {
-  init() {
+  constructor: MiniVue,
+  _init(options) {
+    this.$options = options;
+    this.$el = document.querySelector(options.el);
     // 存放事件
     this._events = {};
     // MiniVue实例
     this._isMiniVue = true;
+    this._callHook("beforeCreate");
     // 初始化数据和方法
     this.initData();
     this.initMethods();
     // 响应化数据
     new observe(this._data, this);
-    // 首次解析指令（建立绑定关系）
-    new compile(this.$el, this);
+
     // 处理 watch
     this.initWatch();
     // 执行 created
-    if (this.$options.created) {
-      this.$options.created.call(this);
+    this._callHook("created");
+    // 首次解析指令（建立绑定关系）
+    if (options.el) {
+      this._callHook("beforeMount");
+      new compile(this.$el, this);
+    }
+  },
+  // 生命周期钩子函数
+  _callHook(hook) {
+    const handlers = this.$options[hook];
+
+    if (typeof handlers === "function") {
+      handlers.call(this);
+    } else if (handlers) {
+      handlers.forEach((handler) => {
+        handler.call(this);
+      });
     }
   },
   initData() {

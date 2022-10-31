@@ -1,7 +1,14 @@
 import { Watcher } from "./watcher";
-// 遍历 dom 结构，解析表达式和插值表达式
+
+const tagRE = /\{\{\s*(.*?)\s*\}\}/;
+const onRe = /^(v-on:|@)/;
+const dirAttrRE = /^v-([^:]+)(?:$|:(.*)$)/;
+const bindRe = /^(v-bind:|:)/;
+const commonTagRE =
+  /^(div|p|span|img|a|b|i|br|ul|ol|li|h1|h2|h3|h4|h5|h6|code|pre|table|th|td|tr|form|label|input|select|option|nav|article|section|header|footer|button|textarea)$/i;
+const reservedTagRE = /^(slot|partial|component)$/i;
+
 export class compile {
-  // el - 待编译模板，vm - Vue 实例
   constructor(el, vm) {
     this.$vm = vm;
     this.$el = el;
@@ -47,31 +54,31 @@ export class compile {
       const exp = attr.value;
       // * 指令
       if (this.isDirective(attrName)) {
-        const dir = attrName.substring(2);
-        console.log(dir);
+        const dir = RegExp.$1;
+        console.log("解析指令:", dir);
         this[dir] && this[dir](node, this.$vm, exp, dir);
       }
       // * 事件
       if (this.isEvent(attrName)) {
-        const dir = attrName.substring(1);
+        const dir = attrName.substring(RegExp.$1.length);
+        console.log("解析事件:", dir);
         this.eventHandler(node, this.$vm, exp, dir);
       }
     });
   }
   isInterpolation(node) {
-    // 是⽂文本且符合{{}}
-    return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);
+    return node.nodeType === 3 && tagRE.test(node.textContent);
   }
   isDirective(attr) {
-    return attr.indexOf("v-") === 0;
+    return !onRe.test(attr) && dirAttrRE.test(attr);
   }
   isEvent(attr) {
-    return attr.indexOf("@") === 0;
+    return onRe.test(attr);
   }
   // 文本替换
   compileText(node) {
-    console.log("编译插值⽂文本: " + RegExp.$1);
     const exp = RegExp.$1;
+    console.log("编译插值⽂文本:", exp);
     this.update(node, exp, "text"); // v-text
   }
   update(node, exp, dir) {
@@ -84,6 +91,7 @@ export class compile {
   }
 
   textUpdater(node, val) {
+    // TODO: 插值表达式不能改所有文本
     node.textContent = val;
   }
   modelUpdater(node, val) {
@@ -98,11 +106,6 @@ export class compile {
     if (dir && fn) {
       node.addEventListener(dir, fn.bind(vm));
     }
-  }
-  on(node, vm, exp, dir) {
-    console.log("on ---");
-    console.log(arguments);
-    // this.eventHandler();
   }
   text(node, vm, exp) {
     this.update(node, exp, "text");

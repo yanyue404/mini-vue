@@ -6,10 +6,21 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Document</title>
   </head>
+  <style>
+    ul li {
+      color: #333;
+      cursor: pointer;
+    }
+
+    .active {
+      color: #0bbe06;
+      font-weight: 600;
+    }
+  </style>
+
   <body>
     <div id="app">
-      <p>不带空格：{{name}}</p>
-      <p>带空格：{{ name }}</p>
+      <p>{{name}}</p>
       <p v-text="name"></p>
       <p>{{age}}</p>
       <input type="text" v-model="name" />
@@ -17,7 +28,7 @@
       <button @click="changeName">更新 name</button>
       <div v-html="html"></div>
     </div>
-  </body>
+  <script type="text/javascript" src="mini-vue.min.js"></script></body>
   <script>
     const app = new MiniVue({
       el: "#app",
@@ -43,6 +54,16 @@
           console.log("watch [arr] oldVal:", oldVal);
           console.log("watch [arr] newVal:", newVal);
         },
+      },
+      created() {
+        console.log("开始啦");
+        console.log(this.arr.push(4));
+        console.log(this.arr.push(5));
+
+        setTimeout(() => {
+          this.name = "我是测试";
+          console.log(this.arr);
+        }, 1500);
       },
       methods: {
         changeName() {
